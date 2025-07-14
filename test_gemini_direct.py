@@ -4,6 +4,7 @@ Direct Gemini API Test - Test API keys and model availability
 """
 
 import os
+import asyncio
 from dotenv import load_dotenv
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 import uuid
@@ -18,7 +19,7 @@ GEMINI_API_KEYS = [
     os.environ.get('GEMINI_API_KEY_3')
 ]
 
-def test_gemini_api_key(api_key, key_number):
+async def test_gemini_api_key(api_key, key_number):
     """Test a single Gemini API key with text-only request"""
     print(f"\n=== Testing Gemini API Key {key_number} ===")
     
@@ -39,7 +40,7 @@ def test_gemini_api_key(api_key, key_number):
         )
         
         print(f"Testing API key {key_number} with simple text request...")
-        response = chat.send_message(message)
+        response = await chat.send_message(message)
         
         print(f"✅ API Key {key_number}: SUCCESS")
         print(f"Response: {response[:100]}...")
@@ -50,14 +51,14 @@ def test_gemini_api_key(api_key, key_number):
         print(f"Error: {str(e)}")
         return False
 
-def test_gemini_with_file():
+async def test_gemini_with_file():
     """Test Gemini with a simple file to check file processing capability"""
     print(f"\n=== Testing Gemini File Processing ===")
     
     # Use the first working API key
     working_key = None
     for i, key in enumerate(GEMINI_API_KEYS):
-        if key and test_gemini_api_key(key, i+1):
+        if key and await test_gemini_api_key(key, i+1):
             working_key = key
             break
     
@@ -91,7 +92,7 @@ def test_gemini_with_file():
         )
         
         print("Testing file processing capability...")
-        response = chat.send_message(message)
+        response = await chat.send_message(message)
         
         print("✅ File processing: SUCCESS")
         print(f"Response: {response[:200]}...")
@@ -105,14 +106,14 @@ def test_gemini_with_file():
         print(f"Error: {str(e)}")
         return False
 
-def main():
+async def main():
     print("🔍 Direct Gemini API Testing")
     print("=" * 50)
     
     # Test all API keys
     working_keys = 0
     for i, key in enumerate(GEMINI_API_KEYS):
-        if test_gemini_api_key(key, i+1):
+        if await test_gemini_api_key(key, i+1):
             working_keys += 1
     
     print(f"\n📊 Results: {working_keys}/{len(GEMINI_API_KEYS)} API keys working")
@@ -121,10 +122,10 @@ def main():
         print("✅ At least one API key is functional")
         
         # Test file processing
-        test_gemini_with_file()
+        await test_gemini_with_file()
     else:
         print("❌ No API keys are working")
         print("❌ This explains why the video analysis is failing")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
