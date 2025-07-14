@@ -46,4 +46,5 @@ ftfy
 dashscope
 imageio-ffmpeg
 gradio>=5.0.0
+einops
 # Note: flash_attn excluded due to CUDA requirement - WAN 2.1 has CPU fallback
