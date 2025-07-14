@@ -17,8 +17,11 @@ import boto3
 from botocore.client import Config
 from botocore.exceptions import ClientError
 from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
+import google.generativeai as genai
 import tempfile
-import shutil
+import time
+import asyncio
+from typing import Optional, Dict, Any
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
