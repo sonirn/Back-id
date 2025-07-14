@@ -120,21 +120,29 @@
 
 ## 🚨 CRITICAL BLOCKERS
 
-### 1. WAN 2.1 Implementation (CRITICAL)
-**Issue**: Video generation model not implemented
-**Impact**: Core functionality missing
-**Solution**: Research and implement WAN 2.1 open source deployment
+### 1. WAN 2.1 Model Checkpoints (HIGH PRIORITY)
+**Issue**: Model checkpoints need to be downloaded for actual video generation
+**Impact**: Currently using placeholder generation
+**Solution**: Download T2V, I2V, and FLF2V model checkpoints
+**Status**: ⚠️ In Progress
 
-### 2. FFmpeg Integration (CRITICAL)
-**Issue**: Video processing pipeline missing
-**Impact**: Cannot create final 9:16 videos
-**Solution**: Implement FFmpeg for video combining and effects
+### 2. Actual WAN 2.1 Implementation (HIGH PRIORITY)
+**Issue**: Replace placeholder video generation with actual WAN 2.1 calls
+**Impact**: Core video generation functionality not fully implemented
+**Solution**: Implement wan.text2video(), wan.image2video(), etc.
+**Status**: ⚠️ In Progress
 
-### 3. Gemini File Upload (MEDIUM - WORKAROUND EXISTS)
-**Issue**: File upload processing failing in both libraries
-**Impact**: Cannot analyze actual video files
-**Solution**: Text-only analysis working, implement file metadata extraction
-**Status**: ✅ Working workaround implemented
+### 3. Frontend Testing (MEDIUM PRIORITY)
+**Issue**: Frontend functionality not tested
+**Impact**: User interface may have bugs
+**Solution**: Comprehensive UI testing
+**Status**: ⚠️ Pending
+
+### 4. ElevenLabs Integration (MEDIUM PRIORITY)
+**Issue**: Audio processing not implemented
+**Impact**: Audio features missing
+**Solution**: Implement ElevenLabs audio generation
+**Status**: ⚠️ Pending
 
 ---
 
