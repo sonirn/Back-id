@@ -32,11 +32,9 @@ class BackendTester:
         
     def create_mock_video_file(self):
         """Create a small mock video file for testing"""
-        # Create a minimal MP4 file (just headers, not a real video)
-        mock_video_content = b'\x00\x00\x00\x20ftypmp41\x00\x00\x00\x00mp41isom\x00\x00\x00\x08free'
-        
-        temp_file = tempfile.NamedTemporaryFile(suffix='.mp4', delete=False)
-        temp_file.write(mock_video_content)
+        # Create a simple text file with video extension for basic upload testing
+        temp_file = tempfile.NamedTemporaryFile(suffix='.mp4', delete=False, mode='w')
+        temp_file.write("Mock video content for testing")
         temp_file.close()
         return temp_file.name
     
