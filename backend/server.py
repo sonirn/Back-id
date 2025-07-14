@@ -364,7 +364,7 @@ async def modify_plan(request: PlanModificationRequest):
         if not analysis:
             raise HTTPException(status_code=404, detail="Analysis not found")
         
-        # Use Gemini to modify the plan
+        # Use stable Gemini model for plan modification
         gemini_key = get_next_gemini_key()
         chat = LlmChat(
             api_key=gemini_key,
@@ -378,7 +378,7 @@ async def modify_plan(request: PlanModificationRequest):
             {analysis['analysis']}
             
             Please modify the plan based on the user's request while maintaining the same structure and format."""
-        ).with_model("gemini", "gemini-2.5-flash-preview-04-17")
+        ).with_model("gemini", "gemini-2.5-flash")
         
         message = UserMessage(
             text=f"Please modify the video generation plan based on this request: {request.modification_request}"
