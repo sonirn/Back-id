@@ -262,90 +262,100 @@ async def analyze_video_with_official_gemini(video_path: str, character_image_pa
 
 # Video analysis with Gemini
 async def analyze_video_with_gemini(video_path: str, character_image_path: Optional[str] = None, audio_path: Optional[str] = None) -> Dict[str, Any]:
-    """Analyze video using Gemini 2.5 Pro"""
+    """Analyze video using Gemini - try official library first, then fallback to emergentintegrations"""
     try:
-        gemini_key = get_next_gemini_key()
+        # First try with official Google Generative AI library
+        logger.info("Attempting video analysis with official Google Generative AI library...")
+        return await analyze_video_with_official_gemini(video_path, character_image_path, audio_path)
         
-        # Initialize Gemini chat - Use stable models with free tier availability
-        chat = LlmChat(
-            api_key=gemini_key,
-            session_id=f"video_analysis_{uuid.uuid4()}",
-            system_message="""You are an expert video analyst. Analyze the provided video in extreme detail including:
-            1. Visual content: scenes, objects, people, actions, movements, colors, lighting
-            2. Audio content: speech, music, sound effects, tone, mood
-            3. Narrative structure: beginning, middle, end, story progression
-            4. Style and aesthetics: camera angles, transitions, effects, filters
-            5. Technical aspects: resolution, frame rate, duration, aspect ratio
-            6. Overall theme and message
-            
-            Then create a detailed plan for generating a similar video with the same style, theme, and structure but with different content to avoid direct copying."""
-        ).with_model("gemini", "gemini-2.5-flash-preview-04-17")
+    except Exception as official_error:
+        logger.warning(f"Official Gemini library failed: {str(official_error)}")
+        logger.info("Falling back to emergentintegrations library...")
         
-        # Prepare files for analysis
-        file_contents = []
-        
-        # Add video file
-        video_file = FileContentWithMimeType(
-            file_path=video_path,
-            mime_type="video/mp4"
-        )
-        file_contents.append(video_file)
-        
-        # Add character image if provided
-        if character_image_path:
-            image_file = FileContentWithMimeType(
-                file_path=character_image_path,
-                mime_type="image/jpeg"
-            )
-            file_contents.append(image_file)
-        
-        # Add audio file if provided
-        if audio_path:
-            audio_file = FileContentWithMimeType(
-                file_path=audio_path,
-                mime_type="audio/mpeg"
-            )
-            file_contents.append(audio_file)
-        
-        # Send analysis request
-        message = UserMessage(
-            text="""Please analyze this video in extreme detail. Include:
-            1. Complete visual analysis (scenes, objects, people, actions, camera work)
-            2. Audio analysis (speech, music, sound effects, mood)
-            3. Narrative structure and flow
-            4. Technical specifications
-            5. Overall style and theme
-            
-            Then create a comprehensive plan for generating a similar video with:
-            - Same style and aesthetic approach
-            - Similar narrative structure
-            - Same technical specifications (9:16 aspect ratio, under 60 seconds)
-            - Different content to avoid copying
-            - Specific shot-by-shot breakdown
-            - Audio requirements
-            - Character requirements if applicable
-            
-            Format your response as JSON with 'analysis' and 'plan' fields.""",
-            file_contents=file_contents
-        )
-        
-        response = await chat.send_message(message)
-        
-        # Parse response
+        # Fallback to emergentintegrations library
         try:
-            # Try to parse as JSON first
-            result = json.loads(response)
-            return result
-        except json.JSONDecodeError:
-            # If not JSON, create structured response
-            return {
-                "analysis": response[:len(response)//2],
-                "plan": response[len(response)//2:]
-            }
+            gemini_key = get_next_gemini_key()
             
-    except Exception as e:
-        logger.error(f"Gemini analysis failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Video analysis failed: {str(e)}")
+            # Initialize Gemini chat - Use stable models with free tier availability
+            chat = LlmChat(
+                api_key=gemini_key,
+                session_id=f"video_analysis_{uuid.uuid4()}",
+                system_message="""You are an expert video analyst. Analyze the provided video in extreme detail including:
+                1. Visual content: scenes, objects, people, actions, movements, colors, lighting
+                2. Audio content: speech, music, sound effects, tone, mood
+                3. Narrative structure: beginning, middle, end, story progression
+                4. Style and aesthetics: camera angles, transitions, effects, filters
+                5. Technical aspects: resolution, frame rate, duration, aspect ratio
+                6. Overall theme and message
+                
+                Then create a detailed plan for generating a similar video with the same style, theme, and structure but with different content to avoid direct copying."""
+            ).with_model("gemini", "gemini-2.5-flash-preview-04-17")
+            
+            # Prepare files for analysis
+            file_contents = []
+            
+            # Add video file
+            video_file = FileContentWithMimeType(
+                file_path=video_path,
+                mime_type="video/mp4"
+            )
+            file_contents.append(video_file)
+            
+            # Add character image if provided
+            if character_image_path:
+                image_file = FileContentWithMimeType(
+                    file_path=character_image_path,
+                    mime_type="image/jpeg"
+                )
+                file_contents.append(image_file)
+            
+            # Add audio file if provided
+            if audio_path:
+                audio_file = FileContentWithMimeType(
+                    file_path=audio_path,
+                    mime_type="audio/mpeg"
+                )
+                file_contents.append(audio_file)
+            
+            # Send analysis request
+            message = UserMessage(
+                text="""Please analyze this video in extreme detail. Include:
+                1. Complete visual analysis (scenes, objects, people, actions, camera work)
+                2. Audio analysis (speech, music, sound effects, mood)
+                3. Narrative structure and flow
+                4. Technical specifications
+                5. Overall style and theme
+                
+                Then create a comprehensive plan for generating a similar video with:
+                - Same style and aesthetic approach
+                - Similar narrative structure
+                - Same technical specifications (9:16 aspect ratio, under 60 seconds)
+                - Different content to avoid copying
+                - Specific shot-by-shot breakdown
+                - Audio requirements
+                - Character requirements if applicable
+                
+                Format your response as JSON with 'analysis' and 'plan' fields.""",
+                file_contents=file_contents
+            )
+            
+            response = await chat.send_message(message)
+            
+            # Parse response
+            try:
+                # Try to parse as JSON first
+                result = json.loads(response)
+                return result
+            except json.JSONDecodeError:
+                # If not JSON, create structured response
+                return {
+                    "analysis": response[:len(response)//2],
+                    "plan": response[len(response)//2:]
+                }
+                
+        except Exception as fallback_error:
+            logger.error(f"Both Gemini approaches failed - Official: {str(official_error)} | Fallback: {str(fallback_error)}")
+            raise HTTPException(status_code=500, detail=f"Video analysis failed with both approaches: Official library error: {str(official_error)} | Emergentintegrations error: {str(fallback_error)}")
 
 # Background task for video generation
 async def generate_video_background(session_id: str, plan: str):
