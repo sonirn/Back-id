@@ -460,6 +460,7 @@ class BackendTester:
         
         # Test core functionality
         results['user_registration'] = self.test_user_registration()
+        results['basic_upload_endpoint'] = self.test_basic_upload_endpoint()
         results['video_upload'] = self.test_video_upload()
         results['r2_storage'] = self.test_r2_storage_integration()
         results['gemini_integration'] = self.test_gemini_integration()
