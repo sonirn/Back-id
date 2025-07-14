@@ -602,40 +602,75 @@ class BackendTester:
             return False
     
     def run_all_tests(self):
-        """Run all backend tests"""
-        print("🚀 Starting Backend API Tests")
-        print("=" * 50)
+        """Run all backend tests with focus on Gemini stable model integration"""
+        print("🚀 Starting Backend API Tests - Focus: Gemini Stable Model Integration")
+        print("=" * 70)
         
         results = {}
         
         # Test core functionality
         results['user_registration'] = self.test_user_registration()
         results['basic_upload_endpoint'] = self.test_basic_upload_endpoint()
+        
+        # Focus on Gemini integration testing
+        print("\n🎯 PRIORITY TESTING: Gemini Integration with Stable Model")
+        print("=" * 50)
+        results['gemini_integration'] = self.test_gemini_integration()
+        results['gemini_api_key_rotation'] = self.test_gemini_api_key_rotation()
+        
+        # Test other functionality
         results['video_upload'] = self.test_video_upload()
         results['r2_storage'] = self.test_r2_storage_integration()
-        results['gemini_integration'] = self.test_gemini_integration()
-        
-        # Test additional features
         results['plan_modification'] = self.test_plan_modification()
         results['video_generation'] = self.test_video_generation()
         results['user_videos'] = self.test_user_videos()
         results['error_handling'] = self.test_error_handling()
         
         # Summary
-        print("\n" + "=" * 50)
+        print("\n" + "=" * 70)
         print("📊 TEST RESULTS SUMMARY")
-        print("=" * 50)
+        print("=" * 70)
         
         passed = 0
         total = len(results)
         
+        # Highlight critical results first
+        critical_tests = ['gemini_integration', 'gemini_api_key_rotation']
+        
+        print("\n🎯 CRITICAL TESTS (Gemini Integration):")
+        for test_name in critical_tests:
+            if test_name in results:
+                result = results[test_name]
+                status = "✅ PASS" if result else "❌ FAIL"
+                print(f"  {test_name.replace('_', ' ').title()}: {status}")
+                if result:
+                    passed += 1
+        
+        print("\n📋 OTHER TESTS:")
         for test_name, result in results.items():
-            status = "✅ PASS" if result else "❌ FAIL"
-            print(f"{test_name.replace('_', ' ').title()}: {status}")
-            if result:
-                passed += 1
+            if test_name not in critical_tests:
+                status = "✅ PASS" if result else "❌ FAIL"
+                print(f"  {test_name.replace('_', ' ').title()}: {status}")
+                if result:
+                    passed += 1
         
         print(f"\nOverall: {passed}/{total} tests passed")
+        
+        # Special focus on Gemini results
+        gemini_success = results.get('gemini_integration', False)
+        rotation_success = results.get('gemini_api_key_rotation', False)
+        
+        print("\n🔍 GEMINI INTEGRATION ANALYSIS:")
+        if gemini_success and rotation_success:
+            print("✅ Gemini stable model integration is WORKING")
+            print("✅ API key rotation is FUNCTIONAL")
+            print("✅ Quota limits appear to be IMPROVED")
+        elif gemini_success:
+            print("✅ Gemini stable model integration is WORKING")
+            print("⚠️ API key rotation needs investigation")
+        else:
+            print("❌ Gemini integration still has ISSUES")
+            print("❌ May need further investigation or API key verification")
         
         return results
 
