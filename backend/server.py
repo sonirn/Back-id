@@ -136,6 +136,130 @@ async def upload_to_r2(file_path: str, bucket_key: str) -> str:
         logger.error(f"Failed to upload to R2: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
+# Alternative Video analysis with Official Google Generative AI library
+async def analyze_video_with_official_gemini(video_path: str, character_image_path: Optional[str] = None, audio_path: Optional[str] = None) -> Dict[str, Any]:
+    """Analyze video using official Google Generative AI library"""
+    try:
+        gemini_key = get_next_gemini_key()
+        
+        # Configure the Google Generative AI client
+        genai.configure(api_key=gemini_key)
+        
+        # Choose the model
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        
+        files_to_upload = []
+        
+        # Upload video file
+        print(f"Uploading video file: {video_path}")
+        video_file = genai.upload_file(path=video_path)
+        files_to_upload.append(video_file)
+        
+        # Upload character image if provided
+        if character_image_path:
+            print(f"Uploading character image: {character_image_path}")
+            image_file = genai.upload_file(path=character_image_path)
+            files_to_upload.append(image_file)
+        
+        # Upload audio file if provided
+        if audio_path:
+            print(f"Uploading audio file: {audio_path}")
+            audio_file = genai.upload_file(path=audio_path)
+            files_to_upload.append(audio_file)
+        
+        # Wait for files to be processed
+        for file in files_to_upload:
+            while file.state.name == "PROCESSING":
+                print(f"Processing file: {file.name}")
+                await asyncio.sleep(2)
+                file = genai.get_file(file.name)
+            
+            if file.state.name != "ACTIVE":
+                raise Exception(f"File processing failed: {file.name} - State: {file.state.name}")
+        
+        # Create the prompt
+        prompt = """Please analyze this video in extreme detail. Include:
+        1. Complete visual analysis (scenes, objects, people, actions, camera work)
+        2. Audio analysis (speech, music, sound effects, mood)
+        3. Narrative structure and flow
+        4. Technical specifications
+        5. Overall style and theme
+        
+        Then create a comprehensive plan for generating a similar video with:
+        - Same style and aesthetic approach
+        - Similar narrative structure
+        - Same technical specifications (9:16 aspect ratio, under 60 seconds)
+        - Different content to avoid copying
+        - Specific shot-by-shot breakdown
+        - Audio requirements
+        - Character requirements if applicable
+        
+        Format your response as JSON with 'analysis' and 'plan' fields."""
+        
+        # Generate content
+        response = model.generate_content([prompt] + files_to_upload)
+        
+        # Parse response
+        try:
+            # Try to parse as JSON first
+            import json
+            result = json.loads(response.text)
+            return result
+        except json.JSONDecodeError:
+            # If not JSON, create structured response
+            return {
+                "analysis": response.text[:len(response.text)//2],
+                "plan": response.text[len(response.text)//2:]
+            }
+            
+    except Exception as e:
+        logger.error(f"Official Gemini analysis failed: {str(e)}")
+        # Try next API key
+        gemini_key = get_next_gemini_key()
+        
+        # Retry with different model
+        try:
+            genai.configure(api_key=gemini_key)
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            
+            # Re-upload files for retry
+            files_to_upload = []
+            video_file = genai.upload_file(path=video_path)
+            files_to_upload.append(video_file)
+            
+            if character_image_path:
+                image_file = genai.upload_file(path=character_image_path)
+                files_to_upload.append(image_file)
+            
+            if audio_path:
+                audio_file = genai.upload_file(path=audio_path)
+                files_to_upload.append(audio_file)
+            
+            # Wait for processing
+            for file in files_to_upload:
+                while file.state.name == "PROCESSING":
+                    await asyncio.sleep(2)
+                    file = genai.get_file(file.name)
+                
+                if file.state.name != "ACTIVE":
+                    raise Exception(f"File processing failed: {file.name}")
+            
+            # Generate content with retry
+            response = model.generate_content([prompt] + files_to_upload)
+            
+            try:
+                result = json.loads(response.text)
+                return result
+            except json.JSONDecodeError:
+                return {
+                    "analysis": response.text[:len(response.text)//2],
+                    "plan": response.text[len(response.text)//2:]
+                }
+                
+        except Exception as retry_e:
+            logger.error(f"Retry with official Gemini also failed: {str(retry_e)}")
+            raise HTTPException(status_code=500, detail=f"Video analysis failed with both approaches: {str(e)} | Retry: {str(retry_e)}")
+
 # Video analysis with Gemini
 async def analyze_video_with_gemini(video_path: str, character_image_path: Optional[str] = None, audio_path: Optional[str] = None) -> Dict[str, Any]:
     """Analyze video using Gemini 2.5 Pro"""
