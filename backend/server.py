@@ -139,7 +139,7 @@ async def analyze_video_with_gemini(video_path: str, character_image_path: Optio
     try:
         gemini_key = get_next_gemini_key()
         
-        # Initialize Gemini chat
+        # Initialize Gemini chat - Use stable models with free tier availability
         chat = LlmChat(
             api_key=gemini_key,
             session_id=f"video_analysis_{uuid.uuid4()}",
@@ -152,7 +152,7 @@ async def analyze_video_with_gemini(video_path: str, character_image_path: Optio
             6. Overall theme and message
             
             Then create a detailed plan for generating a similar video with the same style, theme, and structure but with different content to avoid direct copying."""
-        ).with_model("gemini", "gemini-2.5-flash-preview-04-17")
+        ).with_model("gemini", "gemini-2.5-flash")
         
         # Prepare files for analysis
         file_contents = []
