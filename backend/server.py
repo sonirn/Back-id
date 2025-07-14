@@ -321,7 +321,7 @@ async def analyze_video_with_official_gemini(video_path: str, character_image_pa
 
 # Video analysis with Gemini
 async def analyze_video_with_gemini(video_path: str, character_image_path: Optional[str] = None, audio_path: Optional[str] = None) -> Dict[str, Any]:
-    """Analyze video using Gemini - try official library first, then fallback to emergentintegrations"""
+    """Analyze video using Gemini - try official library first, then fallback to emergentintegrations, then text-only"""
     try:
         # First try with official Google Generative AI library
         logger.info("Attempting video analysis with official Google Generative AI library...")
@@ -413,8 +413,15 @@ async def analyze_video_with_gemini(video_path: str, character_image_path: Optio
                 }
                 
         except Exception as fallback_error:
-            logger.error(f"Both Gemini approaches failed - Official: {str(official_error)} | Fallback: {str(fallback_error)}")
-            raise HTTPException(status_code=500, detail=f"Video analysis failed with both approaches: Official library error: {str(official_error)} | Emergentintegrations error: {str(fallback_error)}")
+            logger.warning(f"Emergentintegrations library also failed: {str(fallback_error)}")
+            logger.info("Falling back to text-only analysis...")
+            
+            # Final fallback to text-only analysis
+            try:
+                return await analyze_video_text_only(video_path, character_image_path, audio_path)
+            except Exception as text_error:
+                logger.error(f"All three approaches failed - Official: {str(official_error)} | Emergentintegrations: {str(fallback_error)} | Text-only: {str(text_error)}")
+                raise HTTPException(status_code=500, detail=f"Video analysis failed with all approaches: Official library: {str(official_error)[:200]} | Emergentintegrations: {str(fallback_error)[:200]} | Text-only: {str(text_error)[:200]}")
 
 # Background task for video generation
 async def generate_video_background(session_id: str, plan: str):
