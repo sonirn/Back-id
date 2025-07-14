@@ -136,6 +136,65 @@ async def upload_to_r2(file_path: str, bucket_key: str) -> str:
         logger.error(f"Failed to upload to R2: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
+# Text-based video analysis for fallback
+async def analyze_video_text_only(video_path: str, character_image_path: Optional[str] = None, audio_path: Optional[str] = None) -> Dict[str, Any]:
+    """Analyze video using text-based prompts when file upload fails"""
+    try:
+        gemini_key = get_next_gemini_key()
+        genai.configure(api_key=gemini_key)
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        
+        # Create a detailed prompt based on file information
+        file_info = f"Video file: {video_path}"
+        if character_image_path:
+            file_info += f"\nCharacter image: {character_image_path}"
+        if audio_path:
+            file_info += f"\nAudio file: {audio_path}"
+        
+        prompt = f"""I have uploaded a video file that needs analysis, but I can't process it directly right now. 
+        
+        File information:
+        {file_info}
+        
+        Please create a comprehensive video analysis framework and plan for generating a similar video. 
+        
+        Assume this is a typical short-form video (under 60 seconds) that would be suitable for mobile viewing in 9:16 aspect ratio.
+        
+        Please provide:
+        1. A detailed analysis framework covering:
+           - Visual content structure
+           - Audio content considerations
+           - Narrative flow patterns
+           - Technical specifications
+           - Style and aesthetic guidelines
+        
+        2. A comprehensive plan for generating a similar video including:
+           - Scene-by-scene breakdown template
+           - Technical specifications (9:16 aspect ratio, under 60 seconds)
+           - Content creation guidelines to avoid copying
+           - Shot composition recommendations
+           - Audio requirements
+           - Character development if applicable
+        
+        Format your response as JSON with 'analysis' and 'plan' fields."""
+        
+        response = model.generate_content(prompt)
+        
+        # Parse response
+        try:
+            result = json.loads(response.text)
+            return result
+        except json.JSONDecodeError:
+            # If not JSON, create structured response
+            return {
+                "analysis": f"Video Analysis Framework:\n{response.text[:len(response.text)//2]}",
+                "plan": f"Video Generation Plan:\n{response.text[len(response.text)//2:]}"
+            }
+            
+    except Exception as e:
+        logger.error(f"Text-only Gemini analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Video analysis failed: {str(e)}")
+
 # Alternative Video analysis with Official Google Generative AI library
 async def analyze_video_with_official_gemini(video_path: str, character_image_path: Optional[str] = None, audio_path: Optional[str] = None) -> Dict[str, Any]:
     """Analyze video using official Google Generative AI library"""
