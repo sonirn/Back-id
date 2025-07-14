@@ -144,6 +144,7 @@ class BackendTester:
                 os.unlink(video_file_path)
             except:
                 pass
+    def test_video_upload(self):
         """Test video file upload with multipart form data"""
         print("\n=== Testing Video File Upload ===")
         
@@ -192,6 +193,10 @@ class BackendTester:
                         print("⚠️ Video analysis may be incomplete")
                     
                     return True
+                elif response.status_code == 500 and "Video analysis failed" in response.text:
+                    print("⚠️ Upload endpoint working but Gemini analysis failed (expected with mock files)")
+                    # Still consider this a partial success for upload functionality
+                    return False
                 else:
                     print(f"❌ Video upload failed: {response.text}")
                     return False
