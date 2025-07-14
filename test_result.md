@@ -297,9 +297,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Gemini video analysis integration"
-  stuck_tasks:
-    - "Gemini video analysis integration"
+    - "WAN 2.1 video generation integration"
+    - "Plan modification with chat"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
