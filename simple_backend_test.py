@@ -15,8 +15,8 @@ import uuid
 load_dotenv('/app/frontend/.env')
 load_dotenv('/app/backend/.env')
 
-# Get backend URL from frontend env
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001')
+# Use localhost for testing since external URL has timeout issues
+BACKEND_URL = 'http://localhost:8001'
 API_BASE_URL = f"{BACKEND_URL}/api"
 
 print(f"Testing backend at: {API_BASE_URL}")
