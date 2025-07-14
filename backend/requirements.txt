@@ -31,3 +31,19 @@ celery>=5.3.0
 redis>=5.0.0
 aiofiles>=23.2.1
 pillow>=10.0.0
+# WAN 2.1 Dependencies
+torch>=2.4.0
+torchvision>=0.19.0
+opencv-python>=4.9.0.80
+diffusers>=0.31.0
+transformers>=4.49.0
+tokenizers>=0.20.3
+accelerate>=1.1.1
+tqdm
+imageio
+easydict
+ftfy
+dashscope
+imageio-ffmpeg
+flash_attn
+gradio>=5.0.0
