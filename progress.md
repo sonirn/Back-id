@@ -130,9 +130,9 @@
 - [x] Audio file upload - 100%
 - [x] User registration - 100%
 - [x] File storage (R2) - 100%
-- [⚠️] AI video analysis - 60% (blocked by API issues)
-- [⚠️] Plan generation - 60% (blocked by API issues)
-- [⚠️] Plan modification - 60% (blocked by API issues)
+- [✅] AI video analysis - 85% (text-only analysis working)
+- [✅] Plan generation - 85% (working with text-only)
+- [⚠️] Plan modification - 70% (needs testing with working analysis)
 - [❌] Video generation - 20% (mock implementation only)
 - [❌] Video processing - 0% (not implemented)
 - [❌] Audio integration - 0% (not implemented)
